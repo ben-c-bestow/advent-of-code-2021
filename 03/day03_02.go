@@ -41,11 +41,11 @@ func findFilter(chars []string, high bool) string {
 			ones++
 		}
 	}
-	majority_ones := ones > (len(chars) / 2)
-	if ones == (len(chars) / 2) {
-		majority_ones = high
+	majority_ones := float32(ones) > float32(len(chars))/2.0
+	if float32(ones) == (float32(len(chars)) / 2.0) {
+		majority_ones = true
 	}
-	fmt.Println(ones, len(chars), majority_ones == high)
+	fmt.Println(ones, (len(chars) / 2), majority_ones == high)
 	if majority_ones == high {
 		return "1"
 	} else {
@@ -68,13 +68,16 @@ func filterReadout(readouts []*Readout, high bool) string {
 		fmt.Println(high, i, keychar)
 		for _, r := range to_filter {
 			word := strings.Split(r.Value, "")
-			fmt.Println(r.Value, word[i])
+			if len(to_filter) < 20 {
+				fmt.Println(r.Value, word[i])
+			}
 			if word[i] != keychar {
 				r.Valid = false
 			}
 		}
 		to_filter = valids(to_filter)
 		if is_final(to_filter) {
+			fmt.Println("selected", to_filter[0].Value)
 			return to_filter[0].Value
 		}
 	}
