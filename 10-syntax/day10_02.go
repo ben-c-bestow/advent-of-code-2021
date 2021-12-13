@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -35,6 +36,15 @@ func errorDie(err error) {
 	os.Exit(1)
 }
 
+func printStack(s *stack) {
+	n := s.top
+	for n != nil {
+		fmt.Print(n.value)
+		n = n.next
+	}
+	fmt.Println()
+}
+
 func in(haystack string, needle string) bool {
 	post := len(needle) - 1
 	hchars := strings.Split(haystack, "")
@@ -64,13 +74,14 @@ func main() {
 	}
 
 	points := map[string]int{
-		")": 3,
-		"]": 57,
-		"}": 1197,
-		">": 25137,
+		")": 1,
+		"]": 2,
+		"}": 3,
+		">": 4,
 	}
 	lines := strings.Split(strings.TrimSpace(string(fileBytes)), "\n")
-	firsterrors := make([]string, 0, 128)
+	//firsterrors := make([]string, 0, 128)
+	scores := make([]int, 0, 64)
 	opens := "([{<"
 	closes := ")]}>"
 	for _, l := range lines {
@@ -78,8 +89,9 @@ func main() {
 		chars := strings.Split(line, "")
 		s := &stack{&node{value: chars[0]}}
 		//assumption: all lines start with an open
+		illegal := false
 		for _, char := range chars[1:] {
-			fmt.Printf("Top %v: Char: %v \n", s.top.value, char)
+			// fmt.Printf("Top %v: Char: %v \n", s.top.value, char)
 			if in(opens, char) {
 				push(s, &node{value: char})
 			} else if in(closes, char) {
@@ -89,16 +101,41 @@ func main() {
 					(char == ">" && s.top.value == "<") {
 					_ = pop(s)
 				} else {
-					firsterrors = append(firsterrors, char)
-					fmt.Println("\nBREAK\n---------")
+					//firsterrors = append(firsterrors, char)
+					fmt.Println("SKIP")
+					illegal = true
 					break
 				}
 			}
 		}
+		if illegal {
+			continue
+		}
+		//stated: all non-illegal lines are incomplete
+		score := 0
+		ttop := s.top
+		for ttop != nil {
+			fmt.Print(ttop.value)
+			ttop = ttop.next
+		}
+		fmt.Println()
+		for s.top != nil {
+			printStack(s)
+			if s.top.value == "(" {
+				score = (score * 5) + points[")"]
+			} else if s.top.value == "[" {
+				score = (score * 5) + points["]"]
+			} else if s.top.value == "{" {
+				score = (score * 5) + points["}"]
+			} else if s.top.value == "<" {
+				score = (score * 5) + points[">"]
+			} else {
+				break
+			}
+			_ = pop(s)
+		}
+		scores = append(scores, score)
 	}
-	total := 0
-	for _, e := range firsterrors {
-		total += points[e]
-	}
-	fmt.Println(total)
+	sort.Ints(scores)
+	fmt.Println(scores[(len(scores) / 2)])
 }
