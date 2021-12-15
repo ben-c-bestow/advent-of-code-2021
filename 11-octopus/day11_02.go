@@ -137,10 +137,12 @@ func main() {
 			field[i][j] = int(val)
 		}
 	}
-	for i := 0; i < 100; i++ {
-		var flashes int
+	var flashes int
+	a := 0
+	for flashes < (len(field) * len(field[0])) {
 		field, flashes = turn(field)
 		total += flashes
+		a++
 	}
-	fmt.Println(total)
+	fmt.Println(a)
 }
